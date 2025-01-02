@@ -1,8 +1,13 @@
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User"); // Adjust the path according to your project structure.
 import { Request, Response } from "express";
-import User from "../models/User"; // Adjust the import path based on your project structure.
 
+/**
+ * Signup controller for user registration.
+ * @param req - Express request object.
+ * @param res - Express response object.
+ */
 const Signup = async (req: Request, res: Response): Promise<void> => {
   const { name, email, password }: { name: string; email: string; password: string } = req.body;
 
@@ -18,7 +23,7 @@ const Signup = async (req: Request, res: Response): Promise<void> => {
 
     const newUser = await User.create({ name, email, password: hashPassword });
 
-    const token = jwt.sign({ email: newUser.email }, "blah");
+    const token = jwt.sign({ email: newUser.email }, process.env.JWT_SECRET || "default_secret");
 
     res.status(200).send({ message: "User registered", newUser, token });
   } catch (error: any) {
@@ -27,4 +32,4 @@ const Signup = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export default Signup;
+module.exports = Signup;
