@@ -1,16 +1,16 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const User = require("../models/User"); // Adjust the path according to your project structure.
+const User = require("../models/user.model");
 import { Request, Response } from "express";
 
-/**
- * Signup controller for user registration.
- * @param req - Express request object.
- * @param res - Express response object.
- */
 const Signup = async (req: Request, res: Response): Promise<void> => {
-  const { name, email, password }: { name: string; email: string; password: string } = req.body;
+  const {
+    name,
+    email,
+    password,
+  }: { name: string; email: string; password: string } = req.body;
 
+  console.log("name:", name);
   try {
     const user = await User.findOne({ email });
 
@@ -23,9 +23,12 @@ const Signup = async (req: Request, res: Response): Promise<void> => {
 
     const newUser = await User.create({ name, email, password: hashPassword });
 
-    const token = jwt.sign({ email: newUser.email }, process.env.JWT_SECRET || "default_secret");
+    // const token = jwt.sign(
+    //   { email: newUser.email },
+    //   process.env.JWT_SECRET || "default_secret"
+    // );
 
-    res.status(200).send({ message: "User registered", newUser, token });
+    res.status(200).send({ message: "User registered", newUser });
   } catch (error: any) {
     console.error(error.message);
     res.status(500).send({ message: "An error occurred during signup" });
