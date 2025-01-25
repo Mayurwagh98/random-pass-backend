@@ -15,7 +15,7 @@ const Signup = async (req: Request, res: Response): Promise<void> => {
     const user = await User.findOne({ email });
 
     if (user) {
-      res.status(200).send({ message: "User already exists" });
+      res.status(409).send({ message: "User already exists" });
       return;
     }
 
@@ -23,12 +23,12 @@ const Signup = async (req: Request, res: Response): Promise<void> => {
 
     const newUser = await User.create({ name, email, password: hashPassword });
 
-    // const token = jwt.sign(
-    //   { email: newUser.email },
-    //   process.env.JWT_SECRET || "default_secret"
-    // );
+    const token = jwt.sign(
+      { email: newUser.email },
+      process.env.JWT_SECRET || "default_secret"
+    );
 
-    res.status(200).send({ message: "User registered", newUser });
+    res.status(201).send({ message: "User registered successfully", token });
   } catch (error: any) {
     console.error(error.message);
     res.status(500).send({ message: "An error occurred during signup" });
