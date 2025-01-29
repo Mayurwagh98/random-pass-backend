@@ -10,7 +10,6 @@ const Signup = async (req: Request, res: Response): Promise<void> => {
     password,
   }: { name: string; email: string; password: string } = req.body;
 
-  console.log("name:", name);
   try {
     const user = await User.findOne({ email });
 
@@ -30,7 +29,6 @@ const Signup = async (req: Request, res: Response): Promise<void> => {
 
     res.status(201).send({ message: "User registered successfully", token });
   } catch (error: any) {
-    console.error(error.message);
     res.status(500).send({ message: "An error occurred during signup" });
   }
 };

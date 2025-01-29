@@ -4,6 +4,8 @@ export interface User extends Document {
   name: string;
   email: string;
   password: string;
+  masterPassword?: string;
+  masterPasswordExpiry?: Date;
 }
 
 const userSchema: Schema<User> = new Schema(
@@ -20,6 +22,14 @@ const userSchema: Schema<User> = new Schema(
     password: {
       type: String,
       required: true,
+    },
+    masterPassword: {
+      type: String,
+      required: false,
+    },
+    masterPasswordExpiry: {
+      type: Date,
+      required: false,
     },
   },
   { timestamps: true }

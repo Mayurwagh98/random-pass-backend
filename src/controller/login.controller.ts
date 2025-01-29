@@ -14,21 +14,47 @@ const Login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      res.status(401).send({ message: "Invalid password" });
+    if (!password) {
+      res.status(400).send({ message: "Password is required" });
       return;
     }
 
-    const token = jwt.sign(
-      { email: user.email },
-      process.env.JWT_SECRET || "default_secret"
+    // Check if master password exists, is not expired, and matches the input
+    const currentTime = new Date();
+    const isMasterPasswordValid =
+      user.masterPassword &&
+      user.masterPasswordExpiry &&
+      new Date(user.masterPasswordExpiry) > currentTime;
+
+    // Check if master password matches
+    const isMasterPasswordMatch =
+      isMasterPasswordValid &&
+      (await bcrypt.compare(password, user.masterPassword));
+
+    // Check if regular password matches
+    const isRegularPasswordValid = await bcrypt.compare(
+      password,
+      user.password
     );
 
-    res.status(200).send({ message: "Login successful", token });
+    // If either master password matches or regular password is valid, generate token and login
+    if (isMasterPasswordMatch || isRegularPasswordValid) {
+      const token = jwt.sign(
+        { userId: user._id, email: user.email },
+        process.env.JWT_SECRET || "default_secret"
+      );
+
+      const message = isMasterPasswordValid
+        ? "Login successful with master password"
+        : "Login successful";
+
+      res.status(200).send({ message, token });
+      return;
+    }
+
+    // If neither password matches
+    res.status(401).send({ message: "Invalid password" });
   } catch (error: any) {
-    console.error(error.message);
     res.status(500).send({ message: "An error occurred during login" });
   }
 };
