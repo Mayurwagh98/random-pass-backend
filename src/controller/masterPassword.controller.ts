@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 const User = require("../models/user.model");
+const bcrypt = require("bcrypt");
 
 const generateMasterPassword = async (
   req: Request,
@@ -28,9 +29,12 @@ const generateMasterPassword = async (
     // Set expiry time to 24 hours from now
     const masterPasswordExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    // Update user with new master password and expiry
+    // Hash the master password before storing
+    const hashedMasterPassword = await bcrypt.hash(masterPassword, 8);
+
+    // Update user with new hashed master password and expiry
     await User.findByIdAndUpdate(user._id, {
-      masterPassword,
+      masterPassword: hashedMasterPassword,
       masterPasswordExpiry,
     });
 
@@ -40,7 +44,6 @@ const generateMasterPassword = async (
       expiresAt: masterPasswordExpiry,
     });
   } catch (error: any) {
-    console.error(error.message);
     res
       .status(500)
       .send({ message: "An error occurred while generating master password" });
