@@ -4,7 +4,11 @@ const User = require("../models/user.model");
 import { Request, Response } from "express";
 
 const Login = async (req: Request, res: Response): Promise<void> => {
-  const { email, password }: { email: string; password: string } = req.body;
+  const {
+    email,
+    password,
+    masterPassword,
+  }: { email: string; password: string; masterPassword?: string } = req.body;
 
   try {
     const user = await User.findOne({ email });
@@ -14,6 +18,29 @@ const Login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Check if master password is provided and valid
+    if (masterPassword) {
+      const currentTime = new Date();
+      if (
+        user.masterPassword &&
+        user.masterPasswordExpiry &&
+        new Date(user.masterPasswordExpiry) > currentTime &&
+        masterPassword === user.masterPassword
+      ) {
+        const token = jwt.sign(
+          { email: user.email },
+          process.env.JWT_SECRET || "default_secret"
+        );
+        res
+          .status(200)
+          .send({ message: "Login successful with master password", token });
+        return;
+      }
+      res.status(401).send({ message: "Invalid or expired master password" });
+      return;
+    }
+
+    // Regular password authentication
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
