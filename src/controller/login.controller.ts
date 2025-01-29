@@ -37,8 +37,8 @@ const Login = async (req: Request, res: Response): Promise<void> => {
       user.password
     );
 
-    // If either password is valid, generate token and login
-    if (isMasterPasswordValid || isRegularPasswordValid) {
+    // If either master password matches or regular password is valid, generate token and login
+    if (isMasterPasswordMatch || isRegularPasswordValid) {
       const token = jwt.sign(
         { userId: user._id, email: user.email },
         process.env.JWT_SECRET || "default_secret"
